@@ -13,6 +13,16 @@ async function main() {
       password: passwordHash,
     },
   ]
+  const categories = [
+    { name: 'Laptops' },
+    { name: 'Desktops' },
+    { name: 'Accessories' },
+    { name: 'Gaming' },
+  ];
+
+  for (const category of categories) {
+    await prisma.category.create({data:category});
+  }
 
   for (const u of userData) {
     await prisma.user.create({ data: u })
