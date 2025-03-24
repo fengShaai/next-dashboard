@@ -19,11 +19,19 @@ async function main() {
     { name: 'Accessories' },
     { name: 'Gaming' },
   ];
+  const tags = [
+    { name: 'Asus' },
+    { name: 'Inteli7' },
+    { name: 'Dell Latitude' },
+    { name: 'Energy efficient' },
+  ];
 
+  for (const tag of tags) {
+    await prisma.tag.create({data:tag});
+  }
   for (const category of categories) {
     await prisma.category.create({data:category});
   }
-
   for (const u of userData) {
     await prisma.user.create({ data: u })
   }

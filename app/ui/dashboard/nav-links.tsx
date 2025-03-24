@@ -23,8 +23,8 @@ const links = [
   },
   { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
   { name: 'Products', href: '/dashboard/products', icon: CubeIcon },
-  { name: 'Categories', href: '/dashboard/categories', icon: TagIcon },
-  { name: 'Sizes', href: '/dashboard/sizes', icon: ArrowsUpDownIcon }
+  { name: 'Categories', href: '/dashboard/categories', icon: ArrowsUpDownIcon },
+  { name: 'Tags', href: '/dashboard/tags', icon: TagIcon }
 ];
 
 export default function NavLinks() {
