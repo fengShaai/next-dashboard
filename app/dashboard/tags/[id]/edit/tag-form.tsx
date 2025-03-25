@@ -10,21 +10,21 @@ import { Suspense, useEffect, useState } from "react";
 import { PrismaClient } from '@prisma/client'
 import { toast } from "react-hot-toast";
 import axiosInstance from "@/lib/axiosInstance";
-import { useCategoryStore } from "@/store/categoryStore";
+import { useTagStore } from "@/store/tagStore";
 import { useRouter } from "next/navigation";
 
 const prisma = new PrismaClient()
 
 const FormSchema = z.object({
   name: z.string().min(2, {
-    message: "Category name must be at least 2 characters.",
+    message: "tag name must be at least 2 characters.",
   }),
 });
 
-const CategoryForm = () => {
+const TagForm = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { editingCategory, setEditingCategory, fetchCategories } = useCategoryStore();
+  const { editingTag, setEditingTag, fetchTags } = useTagStore();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -34,25 +34,25 @@ const CategoryForm = () => {
   });
 
   useEffect(() => {
-    if (editingCategory) {
-      form.setValue("name", editingCategory.name);
+    if (editingTag) {
+      form.setValue("name", editingTag.name);
     }
-  }, [editingCategory, form]);
+  }, [editingTag, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     setLoading(true);
     try {
-      if (editingCategory) {
-        // Update category
-        await axiosInstance.put(`/api/categories/${editingCategory.id}`, data);
-        toast.success("Category updated successfully!");
+      if (editingTag) {
+        // Update tag
+        await axiosInstance.put(`/api/tags/${editingTag.id}`, data);
+        toast.success("tag updated successfully!");
       }
-      fetchCategories();
+      fetchTags();
       form.reset();
-      setEditingCategory(null);
-      router.push(`/dashboard/categories`);
+      setEditingTag(null);
+      router.push(`/dashboard/tags`);
     } catch (error) {
-      console.error("Error submitting category:", error);
+      console.error("Error submitting tag:", error);
       toast.error("Something went wrong.");
     } finally {
       setLoading(false);
@@ -68,7 +68,7 @@ const CategoryForm = () => {
             <FormItem>
               <FormLabel className="">Name</FormLabel>
               <FormControl>
-                <Input disabled={loading} {...field} placeholder="Category name goes here..." className="w-[350px]" />
+                <Input disabled={loading} {...field} placeholder="tag name goes here..." className="w-[350px]" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -81,4 +81,4 @@ const CategoryForm = () => {
   );
 };
 
-export default CategoryForm;
+export default TagForm;

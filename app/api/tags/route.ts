@@ -1,11 +1,23 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { auth } from "@/auth"; 
+
 
 // GET all tags
 export async function GET() {
   try {
-    const tags = await prisma.tag.findMany();
-    return NextResponse.json(tags, { status: 200 });
+    // const session = await auth();
+    // if(!session) {
+    //   return new NextResponse("Unauthorized!", {status: 401});
+    // }
+    const tags = await prisma.tag.findMany({
+      orderBy: {
+        createdAt: 'desc', // Use 'asc' for oldest first
+      },
+    });
+    //throw new Error('Failed to Delete Invoice');
+    const count = await prisma.tag.count();
+    return NextResponse.json({ tags, count }, { status: 200 });
   } catch (error) {
     console.error('Error fetching tags:', error);
     return NextResponse.json({ error: 'Failed to fetch tags' }, { status: 500 });
@@ -15,6 +27,10 @@ export async function GET() {
 // Create a new tag
 export async function POST(req: Request) {
   try {
+    const session = await auth();
+    if(!session) {
+      return new NextResponse("Unauthorized!", {status: 401});
+    }
     const { name } = await req.json();
     if (!name) {
       return NextResponse.json({ error: 'tag name is required' }, { status: 400 });
@@ -29,38 +45,3 @@ export async function POST(req: Request) {
   }
 }
 
-// Update an existing tag
-export async function PUT(req: Request) {
-  try {
-    const { id, name } = await req.json();
-    if (!id || !name) {
-      return NextResponse.json({ error: 'tag ID and name are required' }, { status: 400 });
-    }
-    const tag = await prisma.tag.update({
-      where: { id },
-      data: { name },
-    });
-    return NextResponse.json(tag, { status: 200 });
-  } catch (error) {
-    console.error('Error updating tag:', error);
-    return NextResponse.json({ error: 'Failed to update tag' }, { status: 500 });
-  }
-}
-
-// Delete a tag
-export async function DELETE(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    if (!id) {
-      return NextResponse.json({ error: 'tag ID is required' }, { status: 400 });
-    }
-    await prisma.tag.delete({
-      where: { id },
-    });
-    return NextResponse.json({ message: 'tag deleted successfully' }, { status: 200 });
-  } catch (error) {
-    console.error('Error deleting tag:', error);
-    return NextResponse.json({ error: 'Failed to delete tag' }, { status: 500 });
-  }
-}

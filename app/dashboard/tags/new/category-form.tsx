@@ -6,12 +6,9 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react"; // only use inside of server component
 import { PrismaClient } from '@prisma/client'
-import { toast } from "react-hot-toast";
-import axiosInstance from "@/lib/axiosInstance";
-import { useCategoryStore } from "@/store/categoryStore";
-import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 const prisma = new PrismaClient()
 
@@ -22,10 +19,6 @@ const FormSchema = z.object({
 });
 
 const CategoryForm = () => {
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const { editingCategory, setEditingCategory, fetchCategories } = useCategoryStore();
-
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -33,31 +26,29 @@ const CategoryForm = () => {
     },
   });
 
-  useEffect(() => {
-    if (editingCategory) {
-      form.setValue("name", editingCategory.name);
-    }
-  }, [editingCategory, form]);
-
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    setLoading(true);
+    console.log(data);
     try {
-      if (editingCategory) {
-        // Update category
-        await axiosInstance.put(`/api/categories/${editingCategory.id}`, data);
-        toast.success("Category updated successfully!");
+      const response = await fetch('/api/categories/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      }); 
+      if (!response.ok) {
+        throw new Error('Failed to create category');
       }
-      fetchCategories();
-      form.reset();
-      setEditingCategory(null);
-      router.push(`/dashboard/categories`);
+      const result = await response.json();
+      console.log('Category created:', result);
+      toast.success('Category created successfully!')
     } catch (error) {
-      console.error("Error submitting category:", error);
-      toast.error("Something went wrong.");
-    } finally {
-      setLoading(false);
+      console.error('Error in category-submitform:', error);
+      toast.error('Something went wrong.')
+      throw error;
     }
   }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -68,14 +59,15 @@ const CategoryForm = () => {
             <FormItem>
               <FormLabel className="">Name</FormLabel>
               <FormControl>
-                <Input disabled={loading} {...field} placeholder="Category name goes here..." className="w-[350px]" />
+                <Input {...field} placeholder="Category name goes here..." className="w-[350px]" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-          {loading? <Button disabled className="mt-4">Saving...</Button> :
-          <Button className="mt-4">Save changes</Button>}
+        
+          <Button className="mt-4">Create</Button>
+        
       </form>
     </Form>
   );

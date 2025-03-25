@@ -2,12 +2,12 @@
 
 import { notFound, useParams, usePathname, useRouter } from 'next/navigation'; // not found page
 import React, { Suspense, useState } from 'react'
-import CategoryForm from './category-form';
+import TagForm from './tag-form';
 import Heading from '@/app/ui/heading';
 import Separator from '@/app/ui/separator';
 import { Trash2Icon } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useCategoryStore } from "@/store/categoryStore"; // Zustand store
+import { useTagStore } from "@/store/tagStore"; // Zustand store
 
 const Page = () => {
   const params = useParams();
@@ -16,16 +16,16 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const id = Array.isArray(params.id) ? params.id[0] : params.id; // Ensure id is a string
   if (!id) notFound();
-  const { deleteCategory } = useCategoryStore();
+  const { deleteTag } = useTagStore();
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this category?")) {
+    if (confirm("Are you sure you want to delete this tag?")) {
       try {
         setLoading(true);
-        await deleteCategory(id, pathname, router);
+        await deleteTag(id, pathname, router);
         toast.success("Category deleted successfully!");
       } catch (error) {
-        console.error("Error deleting category:", error);
-        toast.error("Failed to delete category.");
+        console.error("Error deleting tag:", error);
+        toast.error("Failed to delete tag.");
       }
     }
   };
@@ -36,8 +36,8 @@ const Page = () => {
     <div>
       <div className='flex justify-between items-center'>
       <Heading 
-        title='Edit category'
-        description='Edit category features here'
+        title='Edit tag'
+        description='Edit tag features here'
       />
       <div>
         <Trash2Icon 
@@ -48,7 +48,7 @@ const Page = () => {
       </div>
       <Separator className='mb-4'/>
       <Suspense fallback={'Loading...'}>
-        <CategoryForm />
+        <TagForm />
       </Suspense>
     </div>
   )
