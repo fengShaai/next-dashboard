@@ -8,7 +8,7 @@ import {
   Revenue,
 } from './definitions';
 import { formatCurrency } from './utils';
-
+import prisma from '@/lib/prisma';
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
 export async function fetchRevenue() {
@@ -167,17 +167,32 @@ export async function fetchInvoiceById(id: string) {
   }
 }
 
+// export async function fetchCustomers() {
+//   try {
+//     const customers = await sql<CustomerField[]>`
+//       SELECT
+//         id,
+//         name
+//       FROM customers
+//       ORDER BY name ASC
+//     `;
+
+//     return customers;
+//   } catch (err) {
+//     console.error('Database Error:', err);
+//     throw new Error('Failed to fetch all customers.');
+//   }
+// }
+
 export async function fetchCustomers() {
   try {
-    const customers = await sql<CustomerField[]>`
-      SELECT
-        id,
-        name
-      FROM customers
-      ORDER BY name ASC
-    `;
+    const categories = await prisma.category.findMany({
+      orderBy: {
+        createdAt: 'desc', // Use 'asc' for oldest first
+      },
+    });
 
-    return customers;
+    return categories;
   } catch (err) {
     console.error('Database Error:', err);
     throw new Error('Failed to fetch all customers.');

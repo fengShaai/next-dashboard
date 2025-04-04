@@ -35,7 +35,7 @@ export const useTagStore = create<TagStore>((set) => ({
   },
 
   deleteTag: async (id, pathname, router) => {
-    // Optimistic update: Remove the Tag from the state immediately
+    // Optimistic update: Remove the tag from the state immediately
     set((state) => ({
       tags: state.tags.filter((tag) => tag.id !== id),
     }));
@@ -49,8 +49,8 @@ export const useTagStore = create<TagStore>((set) => ({
         router.push(`/dashboard/tags`);
       }
     } catch (error) {
-      console.error("Failed to delete Tag:", error);
-      toast.error("Failed to delete Tag");
+      console.error("Failed to delete tag:", error);
+      toast.error("Failed to delete tag");
     }
   },
 }));

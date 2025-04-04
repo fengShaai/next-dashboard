@@ -2,16 +2,20 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { toast } from "react-hot-toast";
-import { useTagStore } from "@/store/tagStore"; // Zustand store
+import { useProductStore } from "@/store/productStore"; // Zustand store
 import { useRouter } from "next/navigation"; // Import useRouter
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Tag = {
+
+export type Product = {
   id: string
   name: string
+  price: string
+  categoryIds: string[]
+  isFeatured: boolean
+  isArchived: boolean
   createdAt: string
   updatedAt: string
+  images: string[]
 }
 import { DeleteIcon, EditIcon, MoreHorizontal } from "lucide-react"
  
@@ -25,10 +29,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-export const columns: ColumnDef<Tag>[] = [
+export const columns: ColumnDef<Product>[] = [
   {
     accessorKey: "name",
     header: "Name",
+  },
+  {
+    accessorKey: "price",
+    header: "Price",
+  },
+  {
+    accessorKey: "category",
+    header: "Category",
   },
   {
     accessorKey: "createdAt",
@@ -41,24 +53,24 @@ export const columns: ColumnDef<Tag>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const tag = row.original;
+      const product = row.original;
       const router = useRouter(); // Use router for navigation
-      const { setEditingTag, deleteTag } = useTagStore();
+      const { setEditingProduct, deleteProduct } = useProductStore();
 
       const handleEdit = () => {
-        setEditingTag(tag);
-        router.push(`/dashboard/tags/${tag.id}/edit`);
+        setEditingProduct(product);
+        router.push(`/dashboard/products/${product.id}/edit`);
       };
 
       const handleDelete = async () => {
-        if (confirm("Are you sure you want to delete this tag?")) {
+        if (confirm("Are you sure you want to delete this product?")) {
           try {
-            await deleteTag(tag.id);
-            toast.success("tag deleted successfully!");
+            await deleteProduct(product.id);
+            toast.success("product deleted successfully!");
             // window.location.reload();
           } catch (error) {
-            console.error("Error deleting tag:", error);
-            toast.error("Failed to delete tag.");
+            console.error("Error deleting product:", error);
+            toast.error("Failed to delete product.");
           }
         }
       };

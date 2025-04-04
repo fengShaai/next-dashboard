@@ -10,21 +10,21 @@ import { Suspense, useEffect, useState } from "react";
 import { PrismaClient } from '@prisma/client'
 import { toast } from "react-hot-toast";
 import axiosInstance from "@/lib/axiosInstance";
-import { useTagStore } from "@/store/tagStore";
+import { useBrandStore } from "@/store/brandStore";
 import { useRouter } from "next/navigation";
 
 const prisma = new PrismaClient()
 
 const FormSchema = z.object({
   name: z.string().min(2, {
-    message: "tag name must be at least 2 characters.",
+    message: "brand name must be at least 2 characters.",
   }),
 });
 
-const TagForm = () => {
+const BrandForm = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { editingTag, setEditingTag, fetchTags } = useTagStore();
+  const { editingBrand, setEditingBrand, fetchBrands } = useBrandStore();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -34,25 +34,25 @@ const TagForm = () => {
   });
 
   useEffect(() => {
-    if (editingTag) {
-      form.setValue("name", editingTag.name);
+    if (editingBrand) {
+      form.setValue("name", editingBrand.name);
     }
-  }, [editingTag, form]);
+  }, [editingBrand, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     setLoading(true);
     try {
-      if (editingTag) {
-        // Update tag
-        await axiosInstance.put(`/api/tags/${editingTag.id}`, data);
-        toast.success("tag updated successfully!");
+      if (editingBrand) {
+        // Update brand
+        await axiosInstance.put(`/api/brands/${editingBrand.id}`, data);
+        toast.success("brand updated successfully!");
       }
-      fetchTags();
+      fetchBrands();
       form.reset();
-      setEditingTag(null);
-      router.push(`/dashboard/tags`);
+      setEditingBrand(null);
+      router.push(`/dashboard/brands`);
     } catch (error) {
-      console.error("Error submitting tag:", error);
+      console.error("Error submitting brand:", error);
       toast.error("Something went wrong.");
     } finally {
       setLoading(false);
@@ -68,7 +68,7 @@ const TagForm = () => {
             <FormItem>
               <FormLabel className="">Name</FormLabel>
               <FormControl>
-                <Input disabled={loading} {...field} placeholder="tag name goes here..." className="w-[350px]" />
+                <Input disabled={loading} {...field} placeholder="brand name goes here..." className="w-[350px]" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -81,4 +81,4 @@ const TagForm = () => {
   );
 };
 
-export default TagForm;
+export default BrandForm;

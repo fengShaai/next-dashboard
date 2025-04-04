@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from "@/auth"; 
+import path from "path";
+import fs from "fs/promises";
 
-// Get single category
+const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads"); // Define local storage path
+
+// Get single product
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     const session = await auth();
@@ -11,47 +15,76 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
     const { id } = params;
     if (!id) {
-      return NextResponse.json({ error: 'Category ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'product ID is required' }, { status: 400 });
     }
-    const category = await prisma.category.findUnique({where: { id }});
-    if (!category) {
-      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    const product = await prisma.product.findUnique({where: { id }});
+    if (!product) {
+      return NextResponse.json({ error: 'product not found' }, { status: 404 });
     }
-    return NextResponse.json(category, { status: 200 });
+    return NextResponse.json(product, { status: 200 });
   } catch (error) {
-    console.error('Error fetching category:', error);
-    return NextResponse.json({ error: 'Failed to fetch category' }, { status: 500 });
+    console.error('Error fetching product:', error);
+    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
   }
 }
 
-// Update an existing category
+// Update an existing product
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
     const session = await auth();
     if (!session) {
-      return new NextResponse("Unauthorized!", { status: 401 });
+      return NextResponse.json({ error: "Unauthorized!" }, { status: 401 });
     }
 
-    const { id } = params; // Get ID from URL
-    const { name } = await req.json(); // Get name from request body
+    const { id } = params;
+    const formData = await req.formData();
+    const name = formData.get("name") as string;
+    const price = formData.get("price") as string;
+    const categoryId = formData.get("categoryId") as string | null;
+    const isFeatured = formData.get("isFeatured") === "true";
+    const isArchived = formData.get("isArchived") === "true";
 
-    if (!id || !name) {
-      return NextResponse.json({ error: "Category ID and name are required" }, { status: 400 });
+    if (!id || !name || !price) {
+      return NextResponse.json({ error: "Product ID, name, and price are required" }, { status: 400 });
     }
 
-    const category = await prisma.category.update({
+    // Ensure upload directory exists
+    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+
+    // Handle new image uploads
+    const images = formData.getAll("images") as File[];
+    const imagePaths = await Promise.all(
+      images.map(async (file) => {
+        const filePath = path.join(UPLOAD_DIR, `${Date.now()}-${file.name}`);
+        const bytes = await file.arrayBuffer();
+        await fs.writeFile(filePath, Buffer.from(bytes));
+        return `/uploads/${path.basename(filePath)}`;
+      })
+    );
+
+    const updatedProduct = await prisma.product.update({
       where: { id },
-      data: { name },
+      data: {
+        name,
+        price: parseFloat(price),
+        categoryId: categoryId || null,
+        isFeatured,
+        isArchived,
+        images: {
+          create: imagePaths.map((url) => ({ url })),
+        },
+      },
+      include: { images: true },
     });
 
-    return NextResponse.json(category, { status: 200 });
+    return NextResponse.json(updatedProduct, { status: 200 });
   } catch (error) {
-    console.error("Error updating category:", error);
-    return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
+    console.error("Error updating product:", error);
+    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
 
-// Delete a category
+// Delete a product
 export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
@@ -63,16 +96,16 @@ export async function DELETE(
     }
 
     if (!params || !params.id) {
-      return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
+      return NextResponse.json({ error: "product ID is required" }, { status: 400 });
     }
 
-    await prisma.category.delete({
+    await prisma.product.delete({
       where: { id: params.id },
     });
 
-    return NextResponse.json({ message: "Category deleted successfully" }, { status: 200 });
+    return NextResponse.json({ message: "product deleted successfully" }, { status: 200 });
   } catch (error) {
-    console.error("Error deleting category:", error);
-    return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
+    console.error("Error deleting product:", error);
+    return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

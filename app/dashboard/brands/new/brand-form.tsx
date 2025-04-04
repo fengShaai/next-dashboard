@@ -14,11 +14,11 @@ const prisma = new PrismaClient()
 
 const FormSchema = z.object({
   name: z.string().min(2, {
-    message: "Category name must be at least 2 characters.",
+    message: "Brand name must be at least 2 characters.",
   }),
 });
 
-const CategoryForm = () => {
+const BrandForm = () => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -29,7 +29,7 @@ const CategoryForm = () => {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(data);
     try {
-      const response = await fetch('/api/categories/', {
+      const response = await fetch('/api/brands/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,13 +37,13 @@ const CategoryForm = () => {
         body: JSON.stringify(data),
       }); 
       if (!response.ok) {
-        throw new Error('Failed to create category');
+        throw new Error('Failed to create Brand');
       }
       const result = await response.json();
-      console.log('Category created:', result);
-      toast.success('Category created successfully!')
+      console.log('Brand created:', result);
+      toast.success('Brand created successfully!')
     } catch (error) {
-      console.error('Error in category-submitform:', error);
+      console.error('Error in Brand-submitform:', error);
       toast.error('Something went wrong.')
       throw error;
     }
@@ -59,7 +59,7 @@ const CategoryForm = () => {
             <FormItem>
               <FormLabel className="">Name</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Category name goes here..." className="w-[350px]" />
+                <Input {...field} placeholder="Brand name goes here..." className="w-[350px]" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -73,4 +73,4 @@ const CategoryForm = () => {
   );
 };
 
-export default CategoryForm;
+export default BrandForm;

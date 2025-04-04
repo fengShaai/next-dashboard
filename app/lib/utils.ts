@@ -7,6 +7,14 @@ export const formatCurrency = (amount: number) => {
   });
 };
 
+export function formatLKR(value: number) {
+  return new Intl.NumberFormat("en-LK", {
+    style: "currency",
+    currency: "LKR",
+    minimumFractionDigits: 2,
+  }).format(value);
+}
+
 export const formatDateToLocal = (
   dateStr: string,
   locale: string = 'en-US',

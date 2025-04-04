@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import CategoryForm from './category-form'
+import BrandForm from './brand-form'
 import Heading from '@/app/ui/heading'
 import Separator from '@/app/ui/separator'
 
@@ -7,12 +7,12 @@ const Page = () => {
   return (
     <div>
       <Heading 
-        title='Create category'
-        description='Add a new category'
+        title='Create brand'
+        description='Add a new brand'
       />
       <Separator />
       <Suspense fallback={'loading...'}>
-        <CategoryForm />
+        <BrandForm />
       </Suspense>
     </div>
   )
