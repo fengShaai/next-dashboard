@@ -63,16 +63,6 @@ model Product {
   categories ProductCategory[]
 }
 
-// model ProductTag {
-//   productId  String
-//   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-//   tagId      String
-//   tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-//   assignedAt DateTime @default(now())
-
-//   @@id([productId, tagId])
-// }
-
 model ProductCategory {
   productId  String
   product    Product? @relation(fields: [productId], references: [id], onDelete: Cascade)

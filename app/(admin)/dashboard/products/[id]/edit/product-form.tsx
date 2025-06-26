@@ -28,18 +28,38 @@ const ProductForm = ({ categories }: { categories: { id: string; name: string }[
   const router = useRouter();
   const { editingProduct, setEditingProduct, fetchProducts } = useProductStore();
   console.log(editingProduct);
-  const [imagePreviews, setImagePreviews] = useState<string[]>(editingProduct?.images || []);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const files = Array.from(event.target.files);
-      form.setValue("images", files);
-      // Generate image previews
+      setNewImages((prev) => [...prev, ...files]);
+  
       const previews = files.map((file) => URL.createObjectURL(file));
-      setImagePreviews((prev)=> [...prev, ...previews]);
+      setImagePreviews((prev) => [...prev, ...previews]);
     }
   };
+  
 
+  const removeImage = (index: number) => {
+    const previewToRemove = imagePreviews[index];
+  
+    if (previewToRemove.startsWith("blob:")) {
+      // It's a new image
+      const newIndex = imagePreviews.slice(0, index).filter(p => p.startsWith("blob:")).length;
+      setNewImages((prev) => prev.filter((_, i) => i !== newIndex));
+    } else {
+      // It's an existing image
+      setExistingImages((prev) => prev.filter((url) => url !== previewToRemove));
+    }
+  
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+  
+  
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -60,17 +80,30 @@ const ProductForm = ({ categories }: { categories: { id: string; name: string }[
       form.setValue("isArchived", editingProduct.isArchived);
   
       if (editingProduct.images) {
-        setImagePreviews(editingProduct.images);
-        form.setValue("images", []); // Clear file inputs
+        setExistingImages(editingProduct.images);
+        setImagePreviews(editingProduct.images); // preview starts with existing
       }
     }
   }, [editingProduct, form]);
+  
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     setLoading(true);
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("price", data.price);
+    formData.append("isFeatured", String(data.isFeatured));
+    formData.append("isArchived", String(data.isArchived));
+    (existingImages || []).forEach((url) => formData.append("existingImages[]", url));
+    (newImages || []).forEach((file) => formData.append("newImages", file));
+    (data.categoryIds || []).forEach((id) => formData.append("categoryIds[]", id));
+
     try {
       if (editingProduct) {
-        await axiosInstance.put(`/api/products/${editingProduct.id}`, data);
+        await axiosInstance.put(`/api/products/${editingProduct.id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        
         toast.success("Product updated successfully!");
       }
       fetchProducts();
@@ -227,9 +260,24 @@ const ProductForm = ({ categories }: { categories: { id: string; name: string }[
         {/* Display Image Previews */}
         <div className="mt-4 flex flex-wrap gap-2">
           {imagePreviews.map((src, index) => (
-            <img key={index} src={src} alt={`Preview ${index}`} className="w-20 h-20 object-cover rounded-lg" />
+            <div key={index} className="relative w-20 h-20">
+              <img
+                src={src}
+                alt={`Preview ${index}`}
+                className="w-full h-full object-cover rounded-lg"
+              />
+              <button
+                type="button"
+                className="absolute -top-2 -right-2 bg-gray-300 text-red-500 hover:text-red-700 rounded-full w-5 h-5 text-xs flex justify-center"
+                onClick={() => removeImage(index)}
+              >
+                &times;
+              </button>
+            </div>
           ))}
         </div>
+
+
 
         {/* Save Button */}
         {loading ? <Button disabled className="mt-4">Saving...</Button> : <Button className="mt-4">Save changes</Button>}

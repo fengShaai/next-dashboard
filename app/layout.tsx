@@ -1,14 +1,19 @@
+// app/layout.tsx
 import '@/app/ui/global.css';
-import { inter } from '@/app/ui/fonts'; // global font
- 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased`}>{children}</body> 
-    </html>
-  );
-}
+export const metadata = {
+    title: 'My Store',
+    description: 'Buy the best products here',
+  };
+  
+  export default function RootLayout({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) {
+    return (
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    );
+  }
+  
