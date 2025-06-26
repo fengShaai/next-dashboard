@@ -1,5 +1,10 @@
-## Next.js App Router Course - Starter
+npm install
+# or
+yarn
+# or
+pnpm install
 
-This is the starter template for the Next.js App Router Course. It contains the starting code for the dashboard application.
+#
+npm run dev
 
-For more information, see the [course curriculum](https://nextjs.org/learn) on the Next.js Website.
+#To set up Prisma with your Next.js app, visit the official Prisma documentation:
